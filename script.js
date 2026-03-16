@@ -183,7 +183,7 @@ const levels = [
             { text: "Collect all coins to beat the level!", x: 1000, y: 550, size: 24, color: "#FFD700" }
         ]
     },
-    // Level 2: Teaches Spikes and Lava Hazards (Removed for ease)
+    // Level 2: Teaches Spikes and Lava Hazards
     {
         worldWidth: 2000,
         worldHeight: 800,
@@ -191,20 +191,25 @@ const levels = [
         startY: 500,
         requiredCoins: 4,
         platforms: [
-            { x: 0, y: 700, w: 2000, h: 100 } // Made continuous
+            { x: 0, y: 700, w: 800, h: 100 },
+            { x: 860, y: 700, w: 1140, h: 100 }
         ],
         jumpPads: [],
         speedBoosts: [],
-        spikes: [], // Removed
-        hazards: [], // Removed
+        spikes: [
+            { x: 600, y: 680, w: 60, h: 20 } // Avoidable tiny spike
+        ],
+        hazards: [
+            { x: 800, y: 750, w: 60, h: 50 } // easy jump (60px)
+        ],
         coins: [
             { x: 400, y: 650, size: 12, collected: false }, 
-            { x: 830, y: 550, size: 12, collected: false }, 
+            { x: 630, y: 550, size: 12, collected: false }, // above spike
             { x: 1100, y: 650, size: 12, collected: false }, 
             { x: 1450, y: 550, size: 12, collected: false } 
         ],
         texts: [
-            { text: "Jump over red obstacles! (They were removed for your convenience)", x: 50, y: 450, size: 24, color: "#ff3366" },
+            { text: "Jump over red obstacles! Spikes and Lava hurt.", x: 50, y: 450, size: 24, color: "#ff3366" },
             { text: "If you die, the level completely restarts.", x: 50, y: 490, size: 18, color: "#c5c6c7" }
         ]
     },
@@ -216,14 +221,16 @@ const levels = [
         startY: 1000,
         requiredCoins: 3,
         platforms: [
-            { x: 0, y: 1100, w: 1500, h: 100 }, // Generous starting block spanning the whole floor
+            { x: 0, y: 1100, w: 600, h: 100 }, // Generous starting block
             { x: 600, y: 700, w: 100, h: 500 }, // Wall 1
-            { x: 900, y: 500, w: 100, h: 700 }, // Wall 2 (spaced further apart so it's easy)
+            { x: 900, y: 500, w: 100, h: 700 }, // Wall 2 
             { x: 1000, y: 500, w: 500, h: 100 } // generous ending block
         ],
         jumpPads: [],
         speedBoosts: [],
-        spikes: [], // Removed
+        spikes: [
+            { x: 700, y: 1150, w: 200, h: 50 } // spikes on bottom between the walls
+        ],
         hazards: [],
         coins: [
             { x: 300, y: 1050, size: 12, collected: false },
@@ -245,7 +252,7 @@ const levels = [
         startY: 800,
         requiredCoins: 4,
         platforms: [
-            { x: 0, y: 900, w: 2500, h: 100 }, // Replaced spikes with floor
+            { x: 0, y: 900, w: 600, h: 100 },
             { x: 700, y: 600, w: 300, h: 50 }, // high up pad destination
             { x: 1200, y: 600, w: 1300, h: 100 } // long stretch
         ],
@@ -255,7 +262,9 @@ const levels = [
         speedBoosts: [
             { x: 1300, y: 550, size: 15, collected: false }
         ],
-        spikes: [],
+        spikes: [
+            { x: 600, y: 950, w: 1900, h: 50 } // deadly floor but gaps are short
+        ],
         hazards: [],
         coins: [
             { x: 450, y: 650, size: 12, collected: false }, // in the air above pad
@@ -276,22 +285,26 @@ const levels = [
         startY: 1600,
         requiredCoins: 5,
         platforms: [
-            { x: 0, y: 1700, w: 1500, h: 100 }, // Safe floor!
-            { x: 400, y: 1500, w: 100, h: 300 },
-            { x: 200, y: 1300, w: 100, h: 300 },
-            { x: 500, y: 1100, w: 100, h: 300 },
-            { x: 800, y: 900, w: 200, h: 20 },
-            { x: 1100, y: 700, w: 150, h: 20 },
+            { x: 0, y: 1700, w: 200, h: 100 },
+            { x: 400, y: 1550, w: 100, h: 250 }, // Lowered to make jump possible
+            { x: 200, y: 1400, w: 100, h: 400 }, // Lowered to make jump possible
+            { x: 500, y: 1200, w: 100, h: 300 }, // Placed for parkour bounce
+            { x: 800, y: 950, w: 200, h: 20 },
+            { x: 1100, y: 750, w: 150, h: 20 },
+            { x: 1100, y: 550, w: 100, h: 20 }, // New intermediate platform to fix impossible jump!
             { x: 1300, y: 400, w: 100, h: 500 },
             { x: 1000, y: 400, w: 100, h: 500 },
             { x: 500, y: 200, w: 300, h: 100 }
         ],
         jumpPads: [
-            { x: 850, y: 880, w: 40, h: 20 },
-            { x: 700, y: 1680, w: 100, h: 20 } // extra safety pad
+            { x: 850, y: 930, w: 40, h: 20 }
         ],
         speedBoosts: [],
-        spikes: [],
+        spikes: [
+            { x: 200, y: 1750, w: 1300, h: 50 }, // Bottom floor is spikes
+            { x: 400, y: 1530, w: 100, h: 20 }, // Spike on pillar 1
+            { x: 200, y: 1380, w: 100, h: 20 }  // Spike on pillar 2
+        ],
         hazards: [],
         coins: [
             { x: 350, y: 1400, size: 12, collected: false },
@@ -312,7 +325,7 @@ const levels = [
         startY: 1200,
         requiredCoins: 8,
         platforms: [
-            { x: 0, y: 1300, w: 3500, h: 200 }, // Everything has a safe base
+            { x: 0, y: 1300, w: 200, h: 200 },
             { x: 400, y: 1250, w: 50, h: 50 },
             { x: 600, y: 1200, w: 50, h: 50 },
             { x: 800, y: 1150, w: 50, h: 50 },
@@ -337,8 +350,16 @@ const levels = [
             { x: 1900, y: 550, size: 15, collected: false },
             { x: 2500, y: 550, size: 15, collected: false }
         ],
-        spikes: [],
-        hazards: [],
+        spikes: [
+            { x: 200, y: 1450, w: 3300, h: 50 }, // The entire bottom is spikes
+            { x: 1100, y: 880, w: 100, h: 20 }, // Spike on left pillar
+            { x: 1350, y: 680, w: 100, h: 20 }, // Spike on right pillar
+            { x: 2200, y: 580, w: 100, h: 20 }, // Spikes on speed path
+            { x: 2700, y: 580, w: 100, h: 20 }, // Spikes on speed path (made gap easier)
+        ],
+        hazards: [
+            { x: 2400, y: 650, w: 200, h: 50 } // Smaller lava pit
+        ],
         coins: [
             { x: 500, y: 1200, size: 12, collected: false },
             { x: 1250, y: 1000, size: 12, collected: false }, // Between wall jump pillars
