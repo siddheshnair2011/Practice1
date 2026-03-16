@@ -21,9 +21,10 @@ const shopItemsContainer = document.getElementById('shop-items');
 
 // Game State & Persistence
 let currentLevelIndex = 0;
-let coinsCollected = 0; // Coins collected in current level
+let coinsCollected = 0; 
 let gameState = 'menu'; // menu, shop, playing, level_complete, game_over, game_won
 let cameraX = 0;
+let cameraY = 0;
 
 let totalCoins = parseInt(localStorage.getItem('neonHopperCoins')) || 0;
 let unlockedSkins = JSON.parse(localStorage.getItem('neonHopperSkins')) || ['#66fcf1'];
@@ -115,13 +116,17 @@ const player = {
     height: 30,
     vx: 0,
     vy: 0,
+    baseSpeed: 0.8,
     speed: 0.8,
+    baseMaxSpeed: 6,
     maxSpeed: 6,
     jumpStrength: 14,
     gravity: 0.6,
     friction: 0.85,
     grounded: false,
-    color: '#66fcf1'
+    color: '#66fcf1',
+    boostTimer: 0,
+    wallSlidingDir: 0 // -1 left wall, 1 right wall, 0 no wall
 };
 
 const keys = {
@@ -130,172 +135,215 @@ const keys = {
     ArrowUp: false
 };
 
-// Level Design
+// Level Design using new Mechanics
 const levels = [
-    // Level 1
+    // Level 1: Introduction to basics & jump pads
     {
         worldWidth: 1500,
+        worldHeight: 800,
         startX: 50,
-        startY: 200,
+        startY: 500,
         requiredCoins: 3,
         platforms: [
-            { x: 0, y: 400, w: 1500, h: 100 },
-            { x: 350, y: 300, w: 120, h: 20 },
-            { x: 550, y: 200, w: 120, h: 20 },
-            { x: 800, y: 250, w: 120, h: 20 },
-            { x: 1100, y: 320, w: 120, h: 20 }
+            { x: 0, y: 700, w: 600, h: 100 },
+            { x: 700, y: 500, w: 200, h: 50 },
+            { x: 1100, y: 300, w: 400, h: 100 }
         ],
+        jumpPads: [
+            { x: 500, y: 680, w: 40, h: 20 }
+        ],
+        speedBoosts: [],
+        spikes: [
+            { x: 600, y: 770, w: 500, h: 30 }
+        ],
+        hazards: [],
         coins: [
-            { x: 410, y: 260, size: 12, collected: false },
-            { x: 610, y: 160, size: 12, collected: false },
-            { x: 860, y: 210, size: 12, collected: false }
-        ],
-        hazards: []
-    },
-    // Level 2
-    {
-        worldWidth: 2200,
-        startX: 50,
-        startY: 200,
-        requiredCoins: 5,
-        platforms: [
-            { x: 0, y: 400, w: 400, h: 100 },
-            { x: 500, y: 320, w: 120, h: 20 },
-            { x: 750, y: 230, w: 120, h: 20 },
-            { x: 1000, y: 400, w: 300, h: 100 },
-            { x: 1450, y: 280, w: 100, h: 20 },
-            { x: 1700, y: 180, w: 100, h: 20 },
-            { x: 1950, y: 400, w: 250, h: 100 }
-        ],
-        coins: [
-            { x: 200, y: 360, size: 12, collected: false },
-            { x: 560, y: 280, size: 12, collected: false },
-            { x: 810, y: 190, size: 12, collected: false },
-            { x: 1150, y: 360, size: 12, collected: false },
-            { x: 1750, y: 140, size: 12, collected: false }
-        ],
-        hazards: [
-            { x: 400, y: 450, w: 600, h: 50 },
-            { x: 1300, y: 450, w: 650, h: 50 }
+            { x: 300, y: 650, size: 12, collected: false },
+            { x: 800, y: 450, size: 12, collected: false },
+            { x: 1300, y: 250, size: 12, collected: false }
         ]
     },
-    // Level 3
+    // Level 2: Introduction to Wall Jumping
     {
-        worldWidth: 2600,
+        worldWidth: 1200,
+        worldHeight: 900,
         startX: 50,
-        startY: 100,
-        requiredCoins: 6,
-        platforms: [
-            { x: 0, y: 400, w: 300, h: 100 },
-            { x: 400, y: 320, w: 80, h: 20 },
-            { x: 600, y: 240, w: 80, h: 20 },
-            { x: 800, y: 160, w: 80, h: 20 },
-            { x: 1100, y: 400, w: 200, h: 100 },
-            { x: 1450, y: 300, w: 80, h: 20 },
-            { x: 1650, y: 200, w: 80, h: 20 },
-            { x: 1900, y: 350, w: 120, h: 20 },
-            { x: 2200, y: 400, w: 400, h: 100 }
-        ],
-        coins: [
-            { x: 250, y: 360, size: 12, collected: false },
-            { x: 440, y: 280, size: 12, collected: false },
-            { x: 840, y: 120, size: 12, collected: false },
-            { x: 1200, y: 360, size: 12, collected: false },
-            { x: 1490, y: 260, size: 12, collected: false },
-            { x: 1960, y: 310, size: 12, collected: false }
-        ],
-        hazards: [
-            { x: 300, y: 450, w: 800, h: 50 },
-            { x: 1300, y: 450, w: 900, h: 50 }
-        ]
-    },
-    // Level 4 - Vertical emphasis
-    {
-        worldWidth: 1500,
-        startX: 50,
-        startY: 400,
+        startY: 700,
         requiredCoins: 4,
         platforms: [
-            { x: 0, y: 450, w: 200, h: 50 },
-            { x: 300, y: 380, w: 100, h: 20 },
-            { x: 150, y: 280, w: 100, h: 20 },
-            { x: 350, y: 180, w: 100, h: 20 },
-            { x: 600, y: 150, w: 100, h: 20 },
-            { x: 850, y: 250, w: 100, h: 20 },
-            { x: 1100, y: 350, w: 100, h: 20 },
-            { x: 1300, y: 450, w: 200, h: 50 },
+            { x: 0, y: 800, w: 400, h: 100 },
+            { x: 500, y: 400, w: 100, h: 500 }, // huge pillar
+            { x: 700, y: 200, w: 100, h: 700 }, // huge pillar
+            { x: 950, y: 150, w: 250, h: 100 }
         ],
+        jumpPads: [],
+        speedBoosts: [],
+        spikes: [
+            { x: 400, y: 850, w: 800, h: 50 }
+        ],
+        hazards: [],
         coins: [
-            { x: 350, y: 340, size: 12, collected: false },
-            { x: 200, y: 240, size: 12, collected: false },
-            { x: 400, y: 140, size: 12, collected: false },
-            { x: 1150, y: 310, size: 12, collected: false }
-        ],
-        hazards: [
-            { x: 200, y: 480, w: 1100, h: 30 }
+            { x: 250, y: 750, size: 12, collected: false },
+            { x: 600, y: 550, size: 12, collected: false }, // Between pillars
+            { x: 600, y: 350, size: 12, collected: false }, // Between pillars higher
+            { x: 1050, y: 100, size: 12, collected: false }
         ]
     },
-    // Level 5 - Small jumps
+    // Level 3: Introduction to Speed Boosts
+    {
+        worldWidth: 2500,
+        worldHeight: 600,
+        startX: 50,
+        startY: 400,
+        requiredCoins: 3,
+        platforms: [
+            { x: 0, y: 500, w: 300, h: 100 },
+            { x: 400, y: 500, w: 500, h: 100 },
+            { x: 1200, y: 500, w: 1300, h: 100 },
+            { x: 1400, y: 350, w: 100, h: 20 }
+        ],
+        jumpPads: [],
+        speedBoosts: [
+            { x: 600, y: 450, size: 15, collected: false }
+        ],
+        spikes: [
+            { x: 900, y: 480, w: 300, h: 20 }
+        ],
+        hazards: [
+            { x: 300, y: 550, w: 100, h: 50 } // Lava
+        ],
+        coins: [
+            { x: 200, y: 450, size: 12, collected: false },
+            { x: 1500, y: 450, size: 12, collected: false },
+            { x: 1450, y: 300, size: 12, collected: false }
+        ]
+    },
+    // Level 4: Combining Mechanics
     {
         worldWidth: 2000,
+        worldHeight: 1200,
         startX: 50,
-        startY: 200,
-        requiredCoins: 5,
+        startY: 1000,
+        requiredCoins: 6,
         platforms: [
-            { x: 0, y: 300, w: 150, h: 200 },
-            { x: 300, y: 300, w: 50, h: 20 },
-            { x: 500, y: 250, w: 50, h: 20 },
-            { x: 700, y: 200, w: 50, h: 20 },
-            { x: 900, y: 150, w: 50, h: 20 },
-            { x: 1100, y: 250, w: 50, h: 20 },
-            { x: 1300, y: 350, w: 50, h: 20 },
-            { x: 1600, y: 400, w: 400, h: 100 }
+            { x: 0, y: 1100, w: 300, h: 100 },
+            { x: 500, y: 900, w: 100, h: 300 }, // Wall jump pillar
+            { x: 750, y: 700, w: 150, h: 20 },
+            { x: 1000, y: 700, w: 100, h: 500 }, // Tall obstacle
+            { x: 1200, y: 500, w: 200, h: 20 },
+            { x: 1600, y: 300, w: 400, h: 900 }
         ],
+        jumpPads: [
+            { x: 800, y: 680, w: 40, h: 20 },
+            { x: 1300, y: 480, w: 40, h: 20 }
+        ],
+        speedBoosts: [
+            { x: 150, y: 1050, size: 15, collected: false }
+        ],
+        spikes: [
+            { x: 300, y: 1150, w: 200, h: 50 },
+            { x: 600, y: 1150, w: 400, h: 50 },
+            { x: 900, y: 680, w: 100, h: 20 }, // Spikes on top of tall platform
+            { x: 1100, y: 1150, w: 500, h: 50 }
+        ],
+        hazards: [],
         coins: [
-            { x: 325, y: 260, size: 12, collected: false },
-            { x: 525, y: 210, size: 12, collected: false },
-            { x: 925, y: 110, size: 12, collected: false },
-            { x: 1125, y: 210, size: 12, collected: false },
-            { x: 1650, y: 360, size: 12, collected: false }
-        ],
-        hazards: [
-            { x: 150, y: 450, w: 1450, h: 50 }
+            { x: 600, y: 800, size: 12, collected: false },
+            { x: 600, y: 600, size: 12, collected: false },
+            { x: 1050, y: 500, size: 12, collected: false }, // requires wall jump
+            { x: 1450, y: 250, size: 12, collected: false },
+            { x: 1750, y: 250, size: 12, collected: false },
+            { x: 1900, y: 250, size: 12, collected: false }
         ]
     },
-    // Level 6 - The Gauntlet
+    // Level 5: Parkour Cave
+    {
+        worldWidth: 1500,
+        worldHeight: 1800,
+        startX: 50,
+        startY: 1600,
+        requiredCoins: 5,
+        platforms: [
+            { x: 0, y: 1700, w: 200, h: 100 },
+            { x: 400, y: 1500, w: 100, h: 300 },
+            { x: 200, y: 1300, w: 100, h: 300 },
+            { x: 500, y: 1100, w: 100, h: 300 },
+            { x: 800, y: 900, w: 200, h: 20 },
+            { x: 1100, y: 700, w: 150, h: 20 },
+            { x: 1300, y: 400, w: 100, h: 500 },
+            { x: 1000, y: 400, w: 100, h: 500 },
+            { x: 500, y: 200, w: 300, h: 100 }
+        ],
+        jumpPads: [
+            { x: 850, y: 880, w: 40, h: 20 }
+        ],
+        speedBoosts: [],
+        spikes: [
+            { x: 200, y: 1750, w: 1300, h: 50 }, // Bottom floor is spikes
+            { x: 400, y: 1480, w: 100, h: 20 }, // Spike on pillar 1
+            { x: 200, y: 1280, w: 100, h: 20 }  // Spike on pillar 2
+        ],
+        hazards: [],
+        coins: [
+            { x: 350, y: 1400, size: 12, collected: false },
+            { x: 350, y: 1200, size: 12, collected: false },
+            { x: 1200, y: 800, size: 12, collected: false },
+            { x: 1150, y: 550, size: 12, collected: false }, // Between upper pillars
+            { x: 600, y: 150, size: 12, collected: false }
+        ]
+    },
+    // Level 6: The Ultimate Gauntlet
     {
         worldWidth: 3500,
+        worldHeight: 1500,
         startX: 50,
-        startY: 300,
+        startY: 1200,
         requiredCoins: 8,
         platforms: [
-            { x: 0, y: 400, w: 200, h: 100 },
-            { x: 350, y: 350, w: 100, h: 20 },
-            { x: 600, y: 300, w: 80, h: 20 },
-            { x: 800, y: 200, w: 80, h: 20 },
-            { x: 1100, y: 150, w: 50, h: 20 },
-            { x: 1350, y: 250, w: 50, h: 20 },
-            { x: 1600, y: 350, w: 100, h: 20 },
-            { x: 1900, y: 400, w: 150, h: 100 },
-            { x: 2200, y: 350, w: 60, h: 20 },
-            { x: 2400, y: 250, w: 60, h: 20 },
-            { x: 2600, y: 150, w: 60, h: 20 },
-            { x: 2900, y: 250, w: 100, h: 20 },
-            { x: 3200, y: 400, w: 300, h: 100 }
+            { x: 0, y: 1300, w: 200, h: 200 },
+            { x: 400, y: 1250, w: 50, h: 50 },
+            { x: 600, y: 1200, w: 50, h: 50 },
+            { x: 800, y: 1150, w: 50, h: 50 },
+            
+            { x: 1100, y: 900, w: 100, h: 600 }, // Wall jump pillar left
+            { x: 1350, y: 700, w: 100, h: 800 }, // Wall jump pillar right
+            
+            { x: 1600, y: 600, w: 200, h: 20 }, // Landing plat
+            
+            { x: 2000, y: 600, w: 1500, h: 50 }, // Long speed section
+            
+            { x: 3300, y: 400, w: 100, h: 20 },
+            { x: 3000, y: 250, w: 100, h: 20 },
+            { x: 3300, y: 100, w: 200, h: 100 }
         ],
-        coins: [
-            { x: 400, y: 310, size: 12, collected: false },
-            { x: 840, y: 160, size: 12, collected: false },
-            { x: 1125, y: 110, size: 12, collected: false },
-            { x: 1650, y: 310, size: 12, collected: false },
-            { x: 1975, y: 360, size: 12, collected: false },
-            { x: 2430, y: 210, size: 12, collected: false },
-            { x: 2630, y: 110, size: 12, collected: false },
-            { x: 3300, y: 360, size: 12, collected: false }
+        jumpPads: [
+            { x: 1650, y: 580, w: 40, h: 20 },
+            { x: 3320, y: 380, w: 40, h: 20 },
+            { x: 3020, y: 230, w: 40, h: 20 }
+        ],
+        speedBoosts: [
+            { x: 1900, y: 550, size: 15, collected: false },
+            { x: 2500, y: 550, size: 15, collected: false }
+        ],
+        spikes: [
+            { x: 200, y: 1450, w: 3300, h: 50 }, // The entire bottom is spikes
+            { x: 1100, y: 880, w: 100, h: 20 }, // Spike on left pillar
+            { x: 1350, y: 680, w: 100, h: 20 }, // Spike on right pillar
+            { x: 2200, y: 580, w: 100, h: 20 }, // Spikes on speed path
+            { x: 2800, y: 580, w: 200, h: 20 }, // Spikes on speed path
         ],
         hazards: [
-            { x: 200, y: 450, w: 1700, h: 50 },
-            { x: 2050, y: 450, w: 1150, h: 50 }
+            { x: 2400, y: 650, w: 500, h: 50 } // Lava pit under speed path
+        ],
+        coins: [
+            { x: 500, y: 1200, size: 12, collected: false },
+            { x: 1250, y: 1000, size: 12, collected: false }, // Between wall jump pillars
+            { x: 1250, y: 800, size: 12, collected: false }, // Between wall jump pillars higher
+            { x: 2300, y: 520, size: 12, collected: false }, // along speed path
+            { x: 2900, y: 520, size: 12, collected: false }, // along speed path
+            { x: 3350, y: 300, size: 12, collected: false }, // jump pad ascension
+            { x: 3050, y: 150, size: 12, collected: false }, // jump pad ascension
+            { x: 3400, y: 50, size: 12, collected: false }   // Final coin
         ]
     }
 ];
@@ -312,11 +360,14 @@ function loadLevel(index) {
         return;
     }
     
-    level = JSON.parse(JSON.stringify(levels[index]));
+    level = JSON.parse(JSON.stringify(levels[index])); // Deep copy
     player.x = level.startX;
     player.y = level.startY;
     player.vx = 0;
     player.vy = 0;
+    player.boostTimer = 0;
+    player.maxSpeed = player.baseMaxSpeed;
+    player.speed = player.baseSpeed;
     coinsCollected = 0;
     gameState = 'playing';
     messageOverlay.classList.remove('active');
@@ -326,13 +377,15 @@ function loadLevel(index) {
 
 function resetLevel() {
     createDeathParticles(player.x + player.width/2, player.y + player.height/2);
-    // Move player offscreen temporarily
     player.x = -1000;
     setTimeout(() => {
         player.x = level.startX;
         player.y = level.startY;
         player.vx = 0;
         player.vy = 0;
+        player.boostTimer = 0;
+        player.maxSpeed = player.baseMaxSpeed;
+        player.speed = player.baseSpeed;
     }, 500);
 }
 
@@ -440,6 +493,20 @@ function checkCircleRectCollision(circle, rect) {
 }
 
 function updatePhysics() {
+    // Speed Boost Logic
+    if (player.boostTimer > 0) {
+        player.boostTimer--;
+        player.maxSpeed = player.baseMaxSpeed * 1.8;
+        player.speed = player.baseSpeed * 1.5;
+        if (player.boostTimer % 5 === 0) {
+            createParticles(player.x + player.width/2, player.y + player.height, '#00ffcc');
+        }
+    } else {
+        player.maxSpeed = player.baseMaxSpeed;
+        player.speed = player.baseSpeed;
+    }
+
+    // Horizontal Movement
     if (keys.ArrowLeft) {
         player.vx -= player.speed;
     }
@@ -447,21 +514,13 @@ function updatePhysics() {
         player.vx += player.speed;
     }
     
-    // Jump logic including some leniency
-    if (keys.ArrowUp && player.grounded) {
-        player.vy = -player.jumpStrength;
-        player.grounded = false;
-        createParticles(player.x + player.width/2, player.y + player.height, '#fff');
-    }
-
     player.vx *= player.friction;
-    player.vy += player.gravity;
-
     if (player.vx > player.maxSpeed) player.vx = player.maxSpeed;
     if (player.vx < -player.maxSpeed) player.vx = -player.maxSpeed;
 
     player.x += player.vx;
     
+    // Bounds Check horizontal
     if (player.x < 0) {
         player.x = 0;
         player.vx = 0;
@@ -471,21 +530,60 @@ function updatePhysics() {
         player.vx = 0;
     }
 
+    player.wallSlidingDir = 0; // Reset
     for (const plat of level.platforms) {
         if (checkCollision(player, plat)) {
             if (player.vx > 0) {
                 player.x = plat.x - player.width;
                 player.vx = 0;
+                player.wallSlidingDir = 1; // touching right wall
             } else if (player.vx < 0) {
                 player.x = plat.x + plat.w;
                 player.vx = 0;
+                player.wallSlidingDir = -1; // touching left wall
             }
+        }
+    }
+
+    // Vertical Movement
+    let applyGravity = player.gravity;
+
+    // Wall slide logic
+    if (player.wallSlidingDir !== 0 && !player.grounded && player.vy > 0) {
+        // Only wall slide if pushing against the wall
+        if ((player.wallSlidingDir === 1 && keys.ArrowRight) || (player.wallSlidingDir === -1 && keys.ArrowLeft)) {
+            applyGravity = 0.1; // Slow falling
+            if (player.vy > 3) player.vy = 3;
+            // Spawn sparks
+            if (Math.random() < 0.3) {
+                createParticles(player.wallSlidingDir === 1 ? player.x + player.width : player.x, player.y + player.height/2, '#fff');
+            }
+        }
+    }
+
+    player.vy += applyGravity;
+
+    // Jumping
+    if (keys.ArrowUp) {
+        if (player.grounded) {
+            player.vy = -player.jumpStrength;
+            player.grounded = false;
+            createParticles(player.x + player.width/2, player.y + player.height, '#fff');
+            keys.ArrowUp = false; // require re-press
+        } else if (player.wallSlidingDir !== 0) {
+            // Wall jump
+            player.vy = -player.jumpStrength * 0.9;
+            player.vx = -player.wallSlidingDir * player.maxSpeed * 1.5; // kick off
+            player.wallSlidingDir = 0;
+            createParticles(player.x + player.width/2, player.y + player.height/2, '#00ffcc');
+            keys.ArrowUp = false;
         }
     }
 
     player.y += player.vy;
     player.grounded = false;
 
+    // Vertical Platforms
     for (const plat of level.platforms) {
         if (checkCollision(player, plat)) {
             if (player.vy > 0) {
@@ -498,9 +596,42 @@ function updatePhysics() {
             }
         }
     }
-    
+
+    // Jump Pads
+    for (const pad of level.jumpPads) {
+        if (checkCollision(player, pad)) {
+            player.vy = -player.jumpStrength * 1.6; // Super jump!
+            player.grounded = false;
+            createParticles(pad.x + pad.w/2, pad.y, '#00ffcc');
+        }
+    }
+
+    // Speed Boosts
+    const pRect = {x: player.x, y: player.y, width: player.width, height: player.height};
+    for (const boost of level.speedBoosts) {
+        if (!boost.collected && checkCircleRectCollision({x: boost.x, y: boost.y, size: boost.size + 5}, pRect)) {
+            boost.collected = true;
+            player.boostTimer = 300; // 5 seconds at 60fps
+            createParticles(boost.x, boost.y, '#00ffcc');
+        }
+    }
+
+    // Spikes
+    for (const spike of level.spikes) {
+        // smaller forgiving hitbox
+        const spikeHitbox = {
+            x: spike.x + 5,
+            y: spike.y + 10,
+            w: spike.w - 10,
+            h: spike.h - 10
+        };
+        if (checkCollision(player, spikeHitbox)) {
+            resetLevel();
+        }
+    }
+
+    // Lava Hazards
     for (const hazard of level.hazards) {
-        // slight forgiveness on hazards (hitbox slightly smaller)
         const hazardHitbox = {
             x: hazard.x + 5,
             y: hazard.y + 10,
@@ -512,11 +643,12 @@ function updatePhysics() {
         }
     }
     
-    if (player.y > canvas.height + 200) {
+    // Death pit bounds check
+    if (player.y > level.worldHeight + 200 || player.y > (level.worldHeight || 2000)) {
         resetLevel();
     }
 
-    const pRect = {x: player.x, y: player.y, width: player.width, height: player.height};
+    // Coins Check
     for (const coin of level.coins) {
         if (!coin.collected && checkCircleRectCollision({x: coin.x, y: coin.y, size: coin.size + 5}, pRect)) {
             coin.collected = true;
@@ -546,14 +678,15 @@ function drawGrid() {
     ctx.lineWidth = 1;
     const gridSize = 50;
     const offsetX = Math.floor(cameraX / gridSize) * gridSize;
+    const offsetY = Math.floor(cameraY / gridSize) * gridSize;
 
     for (let x = offsetX; x < offsetX + canvas.width + gridSize; x += gridSize) {
         ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, canvas.height);
+        ctx.moveTo(x, cameraY);
+        ctx.lineTo(x, cameraY + canvas.height);
         ctx.stroke();
     }
-    for (let y = 0; y < canvas.height; y += gridSize) {
+    for (let y = offsetY; y < offsetY + canvas.height + gridSize; y += gridSize) {
         ctx.beginPath();
         ctx.moveTo(cameraX, y);
         ctx.lineTo(cameraX + canvas.width, y);
@@ -564,16 +697,25 @@ function drawGrid() {
 function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // Smooth Camera Follow X and Y
     cameraX += ((player.x - canvas.width / 2 + player.width / 2) - cameraX) * 0.1;
+    cameraY += ((player.y - canvas.height / 2 + player.height / 2) - cameraY) * 0.1;
+
+    // Clamp Camera
     if (cameraX < 0) cameraX = 0;
     if (cameraX > level.worldWidth - canvas.width) cameraX = level.worldWidth - canvas.width;
+    
+    // Some levels don't have worldHeight set yet, default to safety
+    let maxCamY = (level.worldHeight || 1500) - canvas.height;
+    if (cameraY < -200) cameraY = -200; // allow seeing jumps slightly above 0
+    if (cameraY > maxCamY) cameraY = maxCamY;
 
     ctx.save();
-    ctx.translate(-cameraX, 0);
+    ctx.translate(-cameraX, -cameraY);
 
     drawGrid();
     
-    // Draw Platforms (Neon style)
+    // Draw Platforms 
     ctx.fillStyle = '#111';
     ctx.strokeStyle = '#45a29e';
     ctx.lineWidth = 2;
@@ -590,7 +732,39 @@ function draw() {
         ctx.fillStyle = '#111';
     }
 
-    // Draw Hazards (Lava)
+    // Draw Jump Pads
+    for (const pad of level.jumpPads) {
+        ctx.shadowColor = '#00ffcc';
+        ctx.shadowBlur = 15;
+        
+        // Pulsing effect
+        const pulse = Math.abs(Math.sin(Date.now() / 200)) * 5;
+        ctx.fillStyle = '#00ffcc';
+        ctx.fillRect(pad.x, pad.y - pulse, pad.w, pad.h + pulse);
+        
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(pad.x + pad.w/2 - 5, pad.y - pulse + 5, 10, 5); // arrow up
+        
+        ctx.shadowBlur = 0;
+    }
+
+    // Draw Spikes
+    ctx.fillStyle = '#ff003c';
+    ctx.shadowColor = '#ff3366';
+    ctx.shadowBlur = 10;
+    for (const spike of level.spikes) {
+        const numSpikes = Math.floor(spike.w / 20);
+        for(let i=0; i<numSpikes; i++) {
+            ctx.beginPath();
+            ctx.moveTo(spike.x + i*20 + 10, spike.y); // tip
+            ctx.lineTo(spike.x + i*20 + 20, spike.y + spike.h); // right base
+            ctx.lineTo(spike.x + i*20, spike.y + spike.h); // left base
+            ctx.fill();
+        }
+    }
+    ctx.shadowBlur = 0;
+
+    // Draw Lava Hazards
     ctx.fillStyle = '#ff003c';
     ctx.strokeStyle = '#ff3366';
     for (const hazard of level.hazards) {
@@ -607,6 +781,35 @@ function draw() {
            ctx.fillRect(hazard.x + i*30 + 10, hazard.y + 5 + wave, 10, 5);
         }
         ctx.fillStyle = '#ff003c';
+    }
+
+    // Draw Speed Boosts
+    for (const boost of level.speedBoosts) {
+        if (!boost.collected) {
+            ctx.shadowColor = '#00ffcc';
+            ctx.shadowBlur = 15;
+            
+            const time = Date.now() / 150;
+            ctx.fillStyle = '#00ffcc';
+            ctx.beginPath();
+            // Draw dual chevrons >>
+            ctx.moveTo(boost.x - 5, boost.y - 10 + Math.sin(time)*3);
+            ctx.lineTo(boost.x + 5, boost.y + Math.sin(time)*3);
+            ctx.lineTo(boost.x - 5, boost.y + 10 + Math.sin(time)*3);
+            ctx.lineTo(boost.x - 10, boost.y + 10 + Math.sin(time)*3);
+            ctx.lineTo(boost.x, boost.y + Math.sin(time)*3);
+            ctx.lineTo(boost.x - 10, boost.y - 10 + Math.sin(time)*3);
+            
+            ctx.moveTo(boost.x + 5, boost.y - 10 + Math.sin(time)*3);
+            ctx.lineTo(boost.x + 15, boost.y + Math.sin(time)*3);
+            ctx.lineTo(boost.x + 5, boost.y + 10 + Math.sin(time)*3);
+            ctx.lineTo(boost.x, boost.y + 10 + Math.sin(time)*3);
+            ctx.lineTo(boost.x + 10, boost.y + Math.sin(time)*3);
+            ctx.lineTo(boost.x, boost.y - 10 + Math.sin(time)*3);
+            
+            ctx.fill();
+            ctx.shadowBlur = 0;
+        }
     }
 
     // Draw Coins
@@ -631,11 +834,20 @@ function draw() {
 
     // Draw Player
     if (player.x !== -1000) {
+        // Boost trail trailing
+        if (player.boostTimer > 0) {
+            ctx.fillStyle = player.color;
+            ctx.globalAlpha = 0.3;
+            ctx.fillRect(player.x - player.vx*1.5, player.y - player.vy*1.5, player.width, player.height);
+            ctx.globalAlpha = 0.15;
+            ctx.fillRect(player.x - player.vx*3, player.y - player.vy*3, player.width, player.height);
+            ctx.globalAlpha = 1.0;
+        }
+
         ctx.shadowColor = player.color;
-        ctx.shadowBlur = 20;
+        ctx.shadowBlur = player.boostTimer > 0 ? 30 : 20;
         ctx.fillStyle = player.color;
         
-        // squash and stretch effect based on velocity
         let stretchY = 1 + Math.abs(player.vy) * 0.02;
         let stretchX = 1 - Math.abs(player.vy) * 0.01;
         if(stretchX < 0.6) stretchX = 0.6;
@@ -658,7 +870,6 @@ function draw() {
     ctx.restore();
 }
 
-let lastTime = 0;
 function gameLoop(time) {
     if (gameState === 'playing') {
         updatePhysics();
