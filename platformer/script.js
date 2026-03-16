@@ -165,8 +165,7 @@ const levels = [
         startY: 500,
         requiredCoins: 3,
         platforms: [
-            { x: 0, y: 700, w: 600, h: 100 },
-            { x: 750, y: 700, w: 900, h: 100 },
+            { x: 0, y: 700, w: 1600, h: 100 } // One giant flat floor
         ],
         jumpPads: [],
         speedBoosts: [],
@@ -174,13 +173,13 @@ const levels = [
         hazards: [],
         coins: [
             { x: 400, y: 650, size: 12, collected: false },
-            { x: 900, y: 650, size: 12, collected: false },
+            { x: 900, y: 550, size: 12, collected: false }, // Slightly elevated to prompt a jump
             { x: 1300, y: 650, size: 12, collected: false }
         ],
         texts: [
             { text: "Welcome to Neon Hopper!", x: 100, y: 550, size: 36, color: "#66fcf1" },
             { text: "Use Left/Right Arrows to Move.", x: 100, y: 600, size: 20, color: "#c5c6c7" },
-            { text: "Use Up Arrow to Jump.", x: 600, y: 550, size: 24, color: "#66fcf1" },
+            { text: "Use Up Arrow to Jump.", x: 750, y: 500, size: 24, color: "#66fcf1" },
             { text: "Collect all coins to beat the level!", x: 1000, y: 550, size: 24, color: "#FFD700" }
         ]
     },
@@ -192,29 +191,27 @@ const levels = [
         startY: 500,
         requiredCoins: 4,
         platforms: [
-            { x: 0, y: 700, w: 400, h: 100 },
-            { x: 550, y: 650, w: 200, h: 20 },
-            { x: 900, y: 700, w: 400, h: 100 },
-            { x: 1450, y: 600, w: 550, h: 200 }
+            { x: 0, y: 700, w: 600, h: 100 },
+            { x: 600, y: 700, w: 200, h: 100 },
+            { x: 800, y: 700, w: 600, h: 100 },
+            { x: 1400, y: 700, w: 600, h: 100 }
         ],
         jumpPads: [],
         speedBoosts: [],
         spikes: [
-            { x: 200, y: 680, w: 100, h: 20 },
-            { x: 1000, y: 680, w: 200, h: 20 }
+            { x: 600, y: 680, w: 200, h: 20 } // Single spike strip on the ground
         ],
         hazards: [
-            { x: 400, y: 750, w: 150, h: 50 }, // lava gap 1
-            { x: 1300, y: 750, w: 150, h: 50 } // lava gap 2
+            { x: 1450, y: 750, w: 200, h: 50 } // tiny safe lava gap
         ],
         coins: [
-            { x: 250, y: 600, size: 12, collected: false }, // above spike
-            { x: 650, y: 580, size: 12, collected: false }, // on floating plat
-            { x: 1100, y: 600, size: 12, collected: false }, // above spike 2
-            { x: 1600, y: 550, size: 12, collected: false }
+            { x: 300, y: 650, size: 12, collected: false }, 
+            { x: 700, y: 550, size: 12, collected: false }, // above spike
+            { x: 1100, y: 650, size: 12, collected: false }, 
+            { x: 1550, y: 550, size: 12, collected: false } // above lava
         ],
         texts: [
-            { text: "Avoid red obstacles! Spikes and Lava will instantly reset you.", x: 50, y: 450, size: 24, color: "#ff3366" },
+            { text: "Jump over red obstacles! Spikes and Lava hurt.", x: 50, y: 450, size: 24, color: "#ff3366" },
             { text: "If you die, the level completely restarts.", x: 50, y: 490, size: 18, color: "#c5c6c7" }
         ]
     },
@@ -226,26 +223,27 @@ const levels = [
         startY: 1000,
         requiredCoins: 3,
         platforms: [
-            { x: 0, y: 1100, w: 400, h: 100 },
-            { x: 500, y: 700, w: 100, h: 500 }, // Wall 1
-            { x: 750, y: 500, w: 100, h: 700 }, // Wall 2
-            { x: 950, y: 450, w: 550, h: 100 }
+            { x: 0, y: 1100, w: 600, h: 100 }, // Generous starting block
+            { x: 600, y: 700, w: 100, h: 500 }, // Wall 1
+            { x: 900, y: 500, w: 100, h: 700 }, // Wall 2 (spaced further apart so it's easy)
+            { x: 1000, y: 500, w: 500, h: 100 } // generous ending block
         ],
         jumpPads: [],
         speedBoosts: [],
         spikes: [
-            { x: 400, y: 1150, w: 1100, h: 50 } // spikes on bottom
+            { x: 600, y: 1150, w: 900, h: 50 } // spikes on bottom, but generous space above
         ],
         hazards: [],
         coins: [
             { x: 300, y: 1050, size: 12, collected: false },
-            { x: 675, y: 800, size: 12, collected: false }, // Between walls
-            { x: 1100, y: 400, size: 12, collected: false }
+            { x: 750, y: 800, size: 12, collected: false }, // Between walls
+            { x: 1200, y: 450, size: 12, collected: false }
         ],
         texts: [
             { text: "Jump into a wall to slide down slowly.", x: 50, y: 950, size: 24, color: "#66fcf1" },
-            { text: "Press Jump while pushing against a wall", x: 600, y: 1050, size: 20, color: "#fff" },
-            { text: "to WALL KICK upwards!", x: 600, y: 1080, size: 20, color: "#fff" }
+            { text: "Press Jump while sliding against a wall", x: 600, y: 1050, size: 20, color: "#fff" },
+            { text: "to WALL KICK upwards!", x: 600, y: 1080, size: 20, color: "#fff" },
+            { text: "Bounce between these walls!", x: 650, y: 600, size: 18, color: "#00ffcc" }
         ]
     },
     // Level 4: Teaches Jump Pads and Speed Boosts
@@ -256,29 +254,29 @@ const levels = [
         startY: 800,
         requiredCoins: 4,
         platforms: [
-            { x: 0, y: 900, w: 400, h: 100 },
-            { x: 600, y: 600, w: 200, h: 50 }, // high up pad destination
-            { x: 1000, y: 600, w: 1500, h: 100 } // long stretch
+            { x: 0, y: 900, w: 600, h: 100 },
+            { x: 700, y: 600, w: 300, h: 50 }, // high up pad destination
+            { x: 1200, y: 600, w: 1300, h: 100 } // long stretch
         ],
         jumpPads: [
-            { x: 300, y: 880, w: 50, h: 20 }
+            { x: 400, y: 880, w: 100, h: 20 } // Massive jump pad
         ],
         speedBoosts: [
-            { x: 1100, y: 550, size: 15, collected: false }
+            { x: 1300, y: 550, size: 15, collected: false }
         ],
         spikes: [
-            { x: 400, y: 950, w: 2100, h: 50 } // deadly floor
+            { x: 600, y: 950, w: 1900, h: 50 } // deadly floor but gaps are short
         ],
         hazards: [],
         coins: [
-            { x: 325, y: 650, size: 12, collected: false }, // in the air above pad
-            { x: 700, y: 550, size: 12, collected: false }, // on high platform
-            { x: 1500, y: 550, size: 12, collected: false },
-            { x: 2200, y: 550, size: 12, collected: false }
+            { x: 450, y: 650, size: 12, collected: false }, // in the air above pad
+            { x: 850, y: 550, size: 12, collected: false }, // on high platform
+            { x: 1600, y: 550, size: 12, collected: false },
+            { x: 2300, y: 550, size: 12, collected: false }
         ],
         texts: [
             { text: "Step on Jump Pads to launch into the air!", x: 50, y: 750, size: 24, color: "#00ffcc" },
-            { text: "Grab Speed Boosts (>>) to zoom across large gaps!", x: 1000, y: 500, size: 24, color: "#00ffcc" }
+            { text: "Grab Speed Boosts (>>) to zoom across large gaps!", x: 1100, y: 500, size: 24, color: "#00ffcc" }
         ]
     },
     // Level 5: Parkour Cave (Combining mechanics)
